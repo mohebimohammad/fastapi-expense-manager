@@ -2,58 +2,47 @@ from fastapi import FastAPI, Path, status, HTTPException
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from typing import List
-
+from schemas import Item
 app = FastAPI()
 
-class Expense(BaseModel):
-    id: int | None = None
-    description: str
-    amount: int
-
-expenses: List[Expense] = [
-    Expense(id=1, description="phone", amount=500),
-    Expense(id=2, description="dinner", amount=50),
-    Expense(id=3, description="water", amount=2)
+items: List[Item] = [
+    Item(id=1, name="phone", description="Mobile phone", price=500, quantity=1),
+    Item(id=2, name="laptop", description="Gaming laptop", price=1200, quantity=3),
+    Item(id=3, name="headphones", description="Noise-cancelling headphones", price=150, quantity=10),
+    Item(id=4, name="mouse", description="Wireless mouse", price=25, quantity=50)
 ]
+next_id = len(items) + 1 
 
-next_id = len(expenses) + 1 
+@app.get("/items", status_code=status.HTTP_200_OK)
+def retrieve_items():
+    return items
 
-@app.get("/expenses", status_code=status.HTTP_200_OK)
-def retrieve_expenses():
-    return expenses
+@app.post("/items", status_code=status.HTTP_201_CREATED)
+def add_item(item: Item):
+    item.id = next_id
+    items.append(item)
+    return item
 
-@app.post("/expenses", status_code=status.HTTP_201_CREATED)
-def add_expense(expense: Expense):
-    global next_id
-    new_expense = expense.model_copy(update={"id": next_id})
-    expenses.append(new_expense)
-    next_id += 1
-    return new_expense
-
-@app.get("/expenses/{item_id}")
-def get_expense_by_id(item_id: int = Path(..., gt=0)):
-    for expense in expenses:
-        if expense.id == item_id:
-            return expense
+@app.get("/items/{item_id}")
+def get_item_by_id(item_id: int = Path(..., gt=0)):
+    for item in items:
+        if item.id == item_id:
+            return item
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
 
-@app.put("/expenses/{item_id}")
-def edit_expense(item_id: int, updated_expense: Expense):
-    for i, expense in enumerate(expenses):
-        if expense.id == item_id:
-            expenses[i] = Expense(
-                id=item_id,
-                description=updated_expense.description,
-                amount=updated_expense.amount
-            )
+@app.put("/items/{item_id}")
+def edit_item(item_id: int, updated_item: Item):
+    for i, item in enumerate(items):
+        if item.id == item_id:
+            updated_item.id = item_id
+            items[i] = updated_item
+            return items[i]
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
 
-            return JSONResponse(content="expense updated", status_code=status.HTTP_202_ACCEPTED)
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Expense not found")
-
-@app.delete("/expenses/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
-def remove_expense(item_id: int):
-    for i, expense in enumerate(expenses):
-        if expense.id == item_id:
-            expenses.pop(i)
+@app.delete("/items/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
+def remove_item(item_id: int):
+    for i, item in enumerate(items):
+        if item.id == item_id:
+            items.pop(i)
             return
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Expense not found")
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
