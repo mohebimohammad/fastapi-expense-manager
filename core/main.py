@@ -7,9 +7,9 @@ app = FastAPI()
 
 items: List[Item] = [
     Item(id=1, name="phone", description="Mobile phone", price=500, quantity=1),
-    Item(id=2, name="laptop", description="Gaming laptop", price=1200, quantity=3),
-    Item(id=3, name="headphones", description="Noise-cancelling headphones", price=150, quantity=10),
-    Item(id=4, name="mouse", description="Wireless mouse", price=25, quantity=50)
+    Item(id=2, name="laptop", description="Gaming laptop", price=1200, quantity=1),
+    Item(id=3, name="headphones", description="Noise-cancelling headphones", price=150, quantity=1),
+    Item(id=4, name="mouse", description="Wireless mouse", price=25, quantity=1)
 ]
 next_id = len(items) + 1 
 
