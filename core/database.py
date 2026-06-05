@@ -1,5 +1,4 @@
 from typing import Optional
-
 from fastapi import status, HTTPException
 from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime
 from sqlalchemy.orm import sessionmaker, declarative_base 
@@ -36,19 +35,17 @@ def create_item(title, description, price):
         session = SessionLocal()
         session.add(item)
         session.commit()
+        session.refresh(item)
+        return item
 
 def get_item(id: Optional[int] = None):
     with SessionLocal() as session:
         if id:
             item = session.query(Item).filter(Item.id == id).first()
-            if item:
-                return item
-            else:
-                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
+            return item
         else:
             item = session.query(Item).all()
-
-        return item
+            return item
 
 def delete_item(id):
     with SessionLocal() as session:
@@ -56,9 +53,23 @@ def delete_item(id):
         if item:
             session.delete(item)
             session.commit()
-        else:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
+            return True
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
 
     
-def edit_item(id):
-    pass
+def update_item(id: int, title: Optional[str] = None, description: Optional[str] = None, price: Optional[float] = None):
+    with SessionLocal() as session:
+        item = session.query(Item).filter(Item.id == id).first()
+        if item:
+            if title:
+                item.title = title
+            if description:
+                item.description = description
+            if price:
+                item.price = price
+            item.timestamp = datetime.now()
+            session.commit()
+            session.refresh(item)
+            return item
+        else:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
