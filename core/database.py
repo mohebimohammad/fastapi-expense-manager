@@ -53,6 +53,7 @@ def delete_item(id):
         if item:
             session.delete(item)
             session.commit()
+            session.refresh(item)
             return True
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
 
